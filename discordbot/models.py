@@ -490,6 +490,33 @@ class MixImage(DiscordImage):
         return f'Current DiscordMixImage {self.id} does not have attached file'
 
 
+class RaiderCharacter(models.Model):
+    discorduser = models.ForeignKey(
+        DiscordUser, on_delete=models.CASCADE, related_name='discorduser')
+    region = models.CharField(max_length=2, default='eu')
+    name = models.CharField(max_length=20)
+    realm = models.CharField(max_length=30)
+
+    def __str__(self) -> str:
+        return f'{self.realm.title()}:{self.name}'
+
+    @property
+    def get_latest_stats(self):
+        return self.stats.latest('timestamp')
+
+
+class RaiderScores(models.Model):
+    character = models.ForeignKey(
+        RaiderCharacter, on_delete=models.CASCADE, related_name='stats')
+    season = models.CharField(max_length=20)
+    total = models.FloatField(default=0)
+    dps = models.FloatField(default=0)
+    healer = models.FloatField(default=0)
+    tank = models.FloatField(default=0)
+    avatar = models.URLField(default=0)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     if hasattr(instance, 'discorduser'):
